@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GCM Example</string>
+    <string name="action_settings">Settings</string>
+    <string name="gcm_registering">Registering device…</string>
+    <string name="gcm_registered">Device registered successfully. Now it can receive messages</string>
+    <string name="gcm_error_registering">Could not register this device, please try again.</string>
+</resources>
