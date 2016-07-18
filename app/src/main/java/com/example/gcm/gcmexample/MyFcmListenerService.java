@@ -6,19 +6,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 
-import com.google.android.gms.gcm.GcmListenerService;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
-public class MyGcmListenerService extends GcmListenerService {
+import java.util.Map;
+
+public class MyFcmListenerService extends FirebaseMessagingService {
 
     @Override
-    public void onMessageReceived(String from, Bundle data) {
+    public void onMessageReceived(RemoteMessage message) {
+        Map data = message.getData();
         if (data != null) sendNotification(data);
     }
 
-    private void sendNotification(Bundle message) {
+    private void sendNotification(Map message) {
+        Log.d("MyFcmListenerService", "Llega noti: " + message.toString());
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
@@ -28,8 +33,10 @@ public class MyGcmListenerService extends GcmListenerService {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
         notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
-        notificationBuilder.setContentTitle(message.getString("title"));
-        notificationBuilder.setContentText(message.getString("body"));
+        Object title = message.get("title");
+        Object body = message.get("body");
+        notificationBuilder.setContentTitle(title != null ? title.toString() : "");
+        notificationBuilder.setContentText(body != null ? body.toString() : "");
         notificationBuilder.setAutoCancel(true);
         notificationBuilder.setSound(defaultSoundUri);
         notificationBuilder.setContentIntent(pendingIntent);

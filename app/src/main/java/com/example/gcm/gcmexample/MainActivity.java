@@ -17,12 +17,11 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.iid.FirebaseInstanceId;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private BroadcastReceiver broadcastReceiver;
@@ -34,6 +33,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        /**
+         When a push notification with 'notification' field is sent, and the application is in
+         background, after the notification is tapped, the custom data sent will be received
+         here as extras.
+         If the notification does not contain the 'notification' field, the data will be received
+         in the onMessageReceived method.
+         See table in: https://firebase.google.com/docs/notifications/android/console-audience
+         */
+        if (getIntent().getExtras() != null) {
+            for (String key : getIntent().getExtras().keySet()) {
+                String value = getIntent().getExtras().getString(key);
+                Log.d(TAG, "Key: " + key + " Value: " + value);
+            }
+        }
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -54,25 +70,16 @@ public class MainActivity extends AppCompatActivity {
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                progressBar.setVisibility(ProgressBar.GONE);
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(context);
-                boolean tokenSent = sharedPreferences
-                        .getBoolean(RegistrationIntentService.SENT_TOKEN_TO_SERVER, false);
-                if (tokenSent) {
-                    textView.setText(getString(R.string.gcm_registered));
-                }
-                else {
-                    textView.setText(getString(R.string.gcm_error_registering));
-                }
+                hideProgress(context);
             }
         };
 
         registerReceiver();
 
-        if (checkPlayServices()) {
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
+        String currentToken = FirebaseInstanceId.getInstance().getToken();
+        if (currentToken != null) {
+            Log.d(TAG, "Current token is: " + currentToken);
+            hideProgress(this);
         }
     }
 
@@ -89,25 +96,21 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    private boolean checkPlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
-                        .show();
-            } else {
-                Log.i(TAG, "This device is not supported.");
-                finish();
-            }
-            return false;
+    private void hideProgress(Context context) {
+        progressBar.setVisibility(ProgressBar.GONE);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean tokenSent = sharedPreferences
+                .getBoolean(MyInstanceIDListenerService.SENT_TOKEN_TO_SERVER, false);
+        if (tokenSent) {
+            textView.setText(getString(R.string.gcm_registered));
+        } else {
+            textView.setText(getString(R.string.gcm_error_registering));
         }
-        return true;
     }
 
     private void registerReceiver() {
         if (receiverRegistered) return;
-        IntentFilter intent = new IntentFilter(RegistrationIntentService.REGISTRATION_COMPLETE);
+        IntentFilter intent = new IntentFilter(MyInstanceIDListenerService.REGISTRATION_COMPLETE);
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.registerReceiver(broadcastReceiver, intent);
         receiverRegistered = true;

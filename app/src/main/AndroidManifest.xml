@@ -2,15 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.gcm.gcmexample">
 
-    <!-- [START GCM Permission] -->
-    <permission
-        android:name="com.example.gcm.gcmexample.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-
-    <uses-permission android:name="com.example.gcm.gcmexample.permission.C2D_MESSAGE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- [END GCM Permission] -->
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -29,41 +20,23 @@
             </intent-filter>
         </activity>
 
-        <!-- [START GCM Receiver] -->
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND">
+        <!-- [START FCM Listener] -->
+        <service
+            android:name="com.example.gcm.gcmexample.MyFcmListenerService">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="com.example.gcm.gcmexample" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </receiver>
-        <!-- [END GCM Receiver] -->
+        </service>
+        <!-- [END FCM Listener] -->
 
-        <!-- [START GCM Listener] -->
+        <!-- [START FCM InstanceID Listener] -->
         <service
-            android:name="com.example.gcm.gcmexample.MyGcmListenerService"
-            android:exported="false">
+            android:name="com.example.gcm.gcmexample.MyInstanceIDListenerService">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <!-- [END GCM Listener] -->
-
-        <!-- [START GCM InstanceID Listener] -->
-        <service
-            android:name="com.example.gcm.gcmexample.MyInstanceIDListenerService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.gms.iid.InstanceID" />
-            </intent-filter>
-        </service>
-        <!-- [END GCM InstanceID Listener] -->
-        <service
-            android:name="com.example.gcm.gcmexample.RegistrationIntentService"
-            android:exported="false">
-        </service>
+        <!-- [END FCM InstanceID Listener] -->
     </application>
 
 </manifest>
